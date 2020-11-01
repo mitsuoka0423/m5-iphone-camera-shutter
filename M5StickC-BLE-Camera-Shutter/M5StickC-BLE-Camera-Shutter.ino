@@ -3,10 +3,32 @@
 
 BleKeyboard bleKeyboard("Camera Shutter M5StcickC");
 
+void coundDown(int waitSec)
+{
+    for (int i = waitSec; i >= 0; i--)
+    {
+        M5.Lcd.fillScreen(BLACK);
+        M5.Lcd.setCursor(30, 30);
+        M5.Lcd.printf("%d", i);
+        delay(1000);
+    }
+}
+
+void takeSwingVideo()
+{
+    bleKeyboard.write(KEY_MEDIA_VOLUME_UP);
+
+    coundDown(7);
+
+    bleKeyboard.write(KEY_MEDIA_VOLUME_DOWN);
+}
+
 void setup()
 {
     M5.begin();
     delay(50);
+    M5.Lcd.setRotation(1);
+    M5.Lcd.setTextSize(3);
     bleKeyboard.begin();
 }
 
@@ -21,31 +43,7 @@ void loop()
         {
             takeSwingVideo();
         }
-    } else {
-        M5.Lcd.printf("Wait...");
     }
 
     delay(50);
-}
-
-void takeSwingVideo()
-{
-    bleKeyboard.write(KEY_MEDIA_VOLUME_UP);
-
-    coundDown(7);
-
-    bleKeyboard.write(KEY_MEDIA_VOLUME_DOWN);
-}
-
-void coundDown(int waitSec)
-{
-    String time = (String)(waitMilliSec / 1000);
-    M5.Lcd.printf(time);
-
-    for (int i = waitSec; i >= 0; i--)
-    {
-        delay(waitMilliSec / 5);
-        M5.Lcd.printf(i);
-        M5.Lcd.fillScreen(BLACK);
-    }
 }
