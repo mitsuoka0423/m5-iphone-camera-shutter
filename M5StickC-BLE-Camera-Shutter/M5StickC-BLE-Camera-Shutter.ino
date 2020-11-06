@@ -1,49 +1,40 @@
 #include <M5StickC.h>
 #include <BleKeyboard.h>
 
-BleKeyboard bleKeyboard("Camera Shutter M5StcickC");
+BleKeyboard bleKeyboard("Camera Shutter Lite");
 
-void coundDown(int waitSec)
-{
-    for (int i = waitSec; i >= 0; i--)
-    {
-        M5.Lcd.fillScreen(BLACK);
-        M5.Lcd.setCursor(30, 30);
-        M5.Lcd.printf("%d", i);
-        delay(1000);
-    }
+void setup() {
+  Serial.begin(115200);
+  M5.begin();
+  Serial.println("Starting BLE work!");
+  bleKeyboard.begin();
 }
 
-void takeSwingVideo()
-{
-    bleKeyboard.write(KEY_MEDIA_VOLUME_UP);
+void loop() {
+  if(bleKeyboard.isConnected()) {
+    Serial.println("Sending 'Hello world'...");
+    bleKeyboard.print("Hello world");
 
-    coundDown(7);
+    delay(1000);
 
-    bleKeyboard.write(KEY_MEDIA_VOLUME_DOWN);
-}
+    Serial.println("Sending Enter key...");
+    bleKeyboard.write(KEY_RETURN);
 
-void setup()
-{
-    M5.begin();
-    delay(50);
-    M5.Lcd.setRotation(1);
-    M5.Lcd.setTextSize(3);
-    bleKeyboard.begin();
-}
+    delay(1000);
 
-void loop()
-{
-    M5.update();
-    M5.Lcd.fillScreen(BLACK);
+    Serial.println("Sending Play/Pause media key...");
+    bleKeyboard.write(KEY_MEDIA_PLAY_PAUSE);
 
-    if (bleKeyboard.isConnected())
-    {
-        if (M5.BtnA.wasPressed())
-        {
-            takeSwingVideo();
-        }
-    }
+    delay(1000);
 
-    delay(50);
+    Serial.println("Sending Ctrl+Alt+Delete...");
+    bleKeyboard.press(KEY_LEFT_CTRL);
+    bleKeyboard.press(KEY_LEFT_ALT);
+    bleKeyboard.press(KEY_DELETE);
+    delay(100);
+    bleKeyboard.releaseAll();
+
+  }
+  Serial.println("Waiting 5 seconds...");
+  delay(5000);
 }
