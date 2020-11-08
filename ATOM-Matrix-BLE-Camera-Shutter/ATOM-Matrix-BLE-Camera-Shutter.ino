@@ -1,7 +1,7 @@
 #include <M5Atom.h>
 #include <BleKeyboard.h>
 
-BleKeyboard bleKeyboard("Camera Shutter");
+BleKeyboard bleKeyboard("Camera Shutter M");
 
 void setup()
 {
