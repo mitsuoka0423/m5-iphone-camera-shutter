@@ -1,7 +1,7 @@
 #include <M5StickC.h>
 #include <BleKeyboard.h>
- 
-BleKeyboard bleKeyboard("Camera Shutter C Ver0.3");
+
+BleKeyboard bleKeyboard("Camera Shutter C Ver0.8");
  
 // バッテリー更新用
 unsigned long nextVbatCheck = 0;
@@ -25,7 +25,41 @@ int getVlevel() {
  
   return vlevel;
 }
- 
+
+void takeVideo() {
+  int waitingSec = 5;
+  int videoLengthSec = 7;
+
+  M5.Lcd.fillScreen(BLACK);
+
+  for (int i = waitingSec; i > 0; i--)
+  {
+    M5.Lcd.setCursor(50, 16);
+    M5.Lcd.setTextSize(4);
+    M5.Lcd.println(i);
+    delay(1000);
+  }
+
+  bleKeyboard.write(KEY_MEDIA_VOLUME_DOWN);
+
+  for (int i = videoLengthSec; i > 0; i--)
+  {
+    M5.Lcd.setCursor(50, 16);
+    M5.Lcd.setTextSize(4);
+    M5.Lcd.println(i);
+    delay(1000);
+  }
+
+  bleKeyboard.write(KEY_MEDIA_VOLUME_DOWN);
+
+  isFirstConnected = true;
+}
+
+void showVatteryVolume() {
+  M5.Lcd.setCursor(112, 0);
+  M5.Lcd.printf("%3d%%", getVlevel());
+}
+
 void setup() {
   M5.begin();
   M5.Axp.ScreenBreath(9);
@@ -34,8 +68,11 @@ void setup() {
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(2);
   M5.Lcd.setCursor(0, 16);
-  M5.Lcd.println("BLE Shutter");
+  M5.Lcd.println("BLE Shutter Ver0.8");
   M5.Lcd.println("Connecting...");
+
+  pinMode(32, INPUT);
+  pinMode(33, INPUT);
  
   // 起動時にしかバッテリー残量は設定できない
   bleKeyboard.setBatteryLevel(getVlevel());
@@ -51,21 +88,22 @@ void loop() {
     if (isFirstConnected) {
       M5.Lcd.fillScreen(BLACK);
       M5.Lcd.setCursor(0, 16);
+      M5.Lcd.setTextSize(2);
       M5.Lcd.println("BLE Shutter");
-      M5.Lcd.println(" BtnA :Shttr");
-      M5.Lcd.println(" BtnB :Shttr");
-      M5.Lcd.println(" BtnP :Reset");
-      M5.Lcd.setCursor(112, 0);
-      M5.Lcd.printf("%3d%%", getVlevel());
+      M5.Lcd.println(" Press Btn ->");
+      showVatteryVolume();
       isFirstConnected = false;
     }
 
     if ( M5.BtnA.wasPressed() ) {
-      // ホームボタンでスライドを進める
-      bleKeyboard.write(KEY_MEDIA_VOLUME_DOWN);
+      takeVideo();
+    }
+    Serial.println(analogRead(32));
+    Serial.println(analogRead(33));
+    if (analogRead(32) > 4000 || analogRead(33) > 4000) {
+      takeVideo();
     }
     if ( M5.BtnB.wasPressed() ) {
-      // 右ボタンでスライドを戻す
       bleKeyboard.write(KEY_MEDIA_VOLUME_DOWN);
     }
     if ( M5.Axp.GetBtnPress() != 0 ) {
@@ -75,13 +113,17 @@ void loop() {
   } else {
     // 接続していない場合にはタイマーを進めない
     startTimer = millis();
+
+    M5.Lcd.fillScreen(BLACK);
+    M5.Lcd.setTextSize(2);
+    M5.Lcd.setCursor(0, 16);
+    M5.Lcd.println("BLE Shutter");
+    M5.Lcd.println("Connecting...");
   }
  
   // バッテリー残量更新(1分毎)
   if (nextVbatCheck < millis()) {
-    M5.Lcd.setCursor(112, 0);
-    M5.Lcd.printf("%3d%%", getVlevel());
- 
+    showVatteryVolume();
     nextVbatCheck = millis() + 60000;
   }
  
